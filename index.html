@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Counter</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background: #f5f5f5;
+        }
+
+        .counter-container {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .counter-display {
+            font-size: 72px;
+            margin: 20px 0;
+            color: #333;
+            transition: color 0.3s;
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 18px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+        }
+
+        .increment { background: #28a745; color: white; }
+        .decrement { background: #dc3545; color: white; }
+        .reset { background: #6c757d; color: white; }
+
+        .history {
+            margin-top: 20px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+
+        .history-item {
+            padding: 5px;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .settings {
+            margin-top: 20px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 5px;
+        }
+
+        input[type="number"] {
+            width: 80px;
+            padding: 5px;
+            margin: 0 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="counter-container">
+        <h1>Interactive Counter</h1>
+        <div class="counter-display" id="count">0</div>
+        
+        <div class="controls">
+            <button class="decrement" onclick="counter.decrement()">-</button>
+            <button class="reset" onclick="counter.reset()">Reset</button>
+            <button class="increment" onclick="counter.increment()">+</button>
+        </div>
+
+        <div class="settings">
+            <label>
+                Step Size: 
+                <input type="number" id="stepSize" value="1" min="1" onchange="counter.updateStepSize(this.value)">
+            </label>
+        </div>
+
+        <div class="history">
+            <h3>History</h3>
+            <div id="history-list"></div>
+        </div>
+    </div>
+
+    <script>
+        // Counter module using closure for encapsulation
+        const counter = (function() {
+            // Private variables
+            let count = 0;
+            let stepSize = 1;
+            const history = [];
+            const maxHistoryItems = 10;
+
+            // DOM elements
+            const displayElement = document.getElementById('count');
+            const historyElement = document.getElementById('history-list');
+
+            // Private functions
+            function updateDisplay() {
+                displayElement.textContent = count;
+                // Change color based on value
+                if (count > 0) displayElement.style.color = '#28a745';
+                else if (count < 0) displayElement.style.color = '#dc3545';
+                else displayElement.style.color = '#333';
+            }
+
+            function addToHistory(action) {
+                history.unshift(`${action} (${new Date().toLocaleTimeString()})`);
+                if (history.length > maxHistoryItems) {
+                    history.pop();
+                }
+                updateHistory();
+            }
+
+            function updateHistory() {
+                historyElement.innerHTML = history
+                    .map(item => `<div class="history-item">${item}</div>`)
+                    .join('');
+            }
+
+            // Event handlers
+            document.addEventListener('keydown', function(e) {
+                switch(e.key) {
+                    case 'ArrowUp':
+                        counter.increment();
+                        break;
+                    case 'ArrowDown':
+                        counter.decrement();
+                        break;
+                    case 'r':
+                    case 'R':
+                        counter.reset();
+                        break;
+                }
+            });
+
+            // Public interface
+            return {
+                increment() {
+                    count += stepSize;
+                    updateDisplay();
+                    addToHistory(`Incremented by ${stepSize}`);
+                },
+
+                decrement() {
+                    count -= stepSize;
+                    updateDisplay();
+                    addToHistory(`Decremented by ${stepSize}`);
+                },
+
+                reset() {
+                    count = 0;
+                    updateDisplay();
+                    addToHistory('Reset to 0');
+                },
+
+                updateStepSize(newSize) {
+                    stepSize = parseInt(newSize) || 1;
+                    addToHistory(`Step size changed to ${stepSize}`);
+                },
+
+                // Getter for current count (for testing)
+                getCount() {
+                    return count;
+                }
+            };
+        })();
+    </script>
+</body>
+</html>
